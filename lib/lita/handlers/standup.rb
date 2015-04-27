@@ -2,7 +2,7 @@ module Lita
   module Handlers
     class Standup < Handler
 
-      config :time_to_respond, type: Integer, default: 60
+      config :time_to_respond, type: Integer, default: 60 #minutes
       config :summary_email_recipients, type: Array, default: ['cwoodrich@gmail.com']
 
       ## SMTP Mailer Settings ##
