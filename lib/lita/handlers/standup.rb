@@ -1,9 +1,10 @@
 module Lita
   module Handlers
     class Standup < Handler
-
+      # General settings
       config :time_to_respond, type: Integer, default: 60 #minutes
-      config :summary_email_recipients, type: Array, default: ['cwoodrich@gmail.com']
+      config :summary_email_recipients, type: Array, default: ['cwoodrich@gmail.com'], required: true
+      config :name_of_auth_group, type: Symbol, default: :standup_participants, required: true
 
       ## SMTP Mailer Settings ##
       config :address, type: String, required: true
@@ -14,7 +15,7 @@ module Lita
       config :authentication, type: String, required: true
       config :enable_starttls_auto, types: [TrueClass, FalseClass], required: true
       config :robot_email_address, type: String, default: 'noreply@lita.com', required: true
-      config :email_subject_line, type: String, default: "Standup summary for --today--"
+      config :email_subject_line, type: String, default: "Standup summary for --today--"  #interpolated at runtime
 
       route %r{^start standup now}i, :begin_standup, command: true
       route %r{standup response (1.*)(2.*)(3.*)}i, :process_standup, command: true
@@ -29,7 +30,7 @@ module Lita
       def process_standup(request)
         return unless timing_is_right?
         date_string = Time.now.strftime('%Y%m%d')
-        user_name = request.user.name.split(' ').join("_") #lol
+        user_name = request.user.name.split(' ').join('_') #lol
         redis.set(date_string + '-' + user_name, request.matches.first)
       end
 
@@ -46,11 +47,7 @@ module Lita
       end
 
       def find_and_create_users
-        @users = []
-        Lita::User.redis.keys.each do |k|
-          id = k.split(":").last.to_i
-          @users << Lita::User.find_by_id(id) if id > 0
-        end
+        @users = Lita::Authorization.groups_with_users[:standup_participants]
       end
 
       def timing_is_right?

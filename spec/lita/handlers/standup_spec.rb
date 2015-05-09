@@ -19,13 +19,18 @@ describe Lita::Handlers::Standup, lita_handler: true do
     jimmy = Lita::User.create(111, name: "Jimmy")
     tristan = Lita::User.create(112, name: "Tristan")
     mitch = Lita::User.create(113, name: "Mitch")
+
+    robot.auth.add_user_to_group!(jimmy, :standup_participants)
+    robot.auth.add_user_to_group!(tristan, :standup_participants)
+    robot.auth.add_user_to_group!(mitch, :standup_participants)
+
   end
 
   describe '#begin_standup' do
 
     it 'messages each user and prompts for stand up options' do
       send_command("start standup now")
-      expect(replies.size).to eq(8) #3 test users plus the one defaulted test user
+      expect(replies.size).to eq(6) #Jimmy, Tristan, and Mitch
     end
 
     it 'properly queues an email job upon initiation' do
