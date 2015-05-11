@@ -2,7 +2,7 @@ module Lita
   module Handlers
     class Standup < Handler
       # General settings
-      config :time_to_respond, type: Integer, default: 60 #minutes
+      config :time_to_respond, types: [Integer, Float], default: 60 #minutes
       config :summary_email_recipients, type: Array, default: ['cwoodrich@gmail.com'], required: true
       config :name_of_auth_group, type: Symbol, default: :standup_participants, required: true
 
@@ -15,7 +15,7 @@ module Lita
       config :authentication, type: String, required: true
       config :enable_starttls_auto, types: [TrueClass, FalseClass], required: true
       config :robot_email_address, type: String, default: 'noreply@lita.com', required: true
-      config :email_subject_line, type: String, default: "Standup summary for --today--"  #interpolated at runtime
+      config :email_subject_line, type: String, default: "Standup summary for --today--", required: true  #interpolated at runtime
 
       route %r{^start standup now}i, :begin_standup, command: true
       route %r{standup response (1.*)(2.*)(3.*)}i, :process_standup, command: true
@@ -24,11 +24,12 @@ module Lita
         redis.set('last_standup_started_at', Time.now)
         find_and_create_users
         message_all_users
-        SummaryEmailJob.new().async.later(config.time_to_respond*60, {redis: redis, config: config})
+        SummaryEmailJob.new().async.later(config.time_to_respond * 60, {redis: redis, config: config})
       end
 
       def process_standup(request)
         return unless timing_is_right?
+        request.reply('Response recorded. Thanks for partipating')
         date_string = Time.now.strftime('%Y%m%d')
         user_name = request.user.name.split(' ').join('_') #lol
         redis.set(date_string + '-' + user_name, request.matches.first)
@@ -62,53 +63,4 @@ module Lita
 end
 
 
-class SummaryEmailJob
-  require 'mail'
-  require 'sucker_punch'
-  include SuckerPunch::Job
-
-  def later(sec, payload)
-    sec == 0 ? preform(payload) : after(sec) { preform(payload) } #0 seconds not handled well by #after
-  end
-
-
-  def preform(payload)
-    redis = payload[:redis]
-    config = payload[:config]
-
-    email_body = build_email_body_from_redis(redis)
-
-    options = { address:              config.address,
-                port:                 config.port,
-                domain:               config.domain,
-                user_name:            config.user_name,
-                password:             config.password,
-                authentication:       config.authentication,
-                enable_starttls_auto: config.enable_starttls_auto}
-
-    Mail.defaults do
-      ENV['MODE'].nil? ? dev_meth = :smtp : dev_meth = ENV['MODE'].to_sym
-      delivery_method(dev_meth , options)
-    end
-
-
-    subject_line = config.email_subject_line
-    subject_line.gsub!(/--today--/, Time.now.strftime('%m/%d'))
-
-    mail = Mail.new do
-      from    config.robot_email_address
-      to      ['cwoodrich@gmail.com']
-      subject config.email_subject_line
-      body    "#{email_body}"
-    end
-    if mail.deliver!
-      Lita.logger("Sent standup email to #{mail.to} at #{Time.now}")
-    end
-  end
-
-  def build_email_body_from_redis(redis)
-    redis.keys
-  end
-
-end
 
