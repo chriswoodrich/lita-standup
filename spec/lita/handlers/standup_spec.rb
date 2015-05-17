@@ -34,7 +34,7 @@ describe Lita::Handlers::Standup, lita_handler: true do
       registry.config.handlers.standup.time_to_respond = 60
       send_command("start standup now", as: jimmy)
       send_command("standup response 1: everything 2:everything else 3:nothing", as: jimmy)
-      expect(Celluloid::Actor.registered).to include(:summary_email_job);
+      expect(Celluloid::Actor.registered.first.to_s).to end_with("summary_email_job")
     end
   end
 

@@ -44,7 +44,7 @@ module Lita
           robot.send_message(user, "Please tell me what you did yesterday,
                                     what you're doing now, and what you're
                                     working on today. Please prepend your
-                                    answer with 'standup respond'")
+                                    answer with 'standup response'")
         end
       end
 
