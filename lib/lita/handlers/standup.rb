@@ -3,7 +3,7 @@ module Lita
     class Standup < Handler
       # General settings
       config :time_to_respond, types: [Integer, Float], default: 60 #minutes
-      config :summary_email_recipients, type: Array, default: ['cwoodrich@gmail.com'], required: true
+      config :summary_email_recipients, type: Array, default: ['you@company.com'], required: true
       config :name_of_auth_group, type: Symbol, default: :standup_participants, required: true
 
       ## SMTP Mailer Settings ##
@@ -17,7 +17,7 @@ module Lita
       config :robot_email_address, type: String, default: 'noreply@lita.com', required: true
       config :email_subject_line, type: String, default: "Standup summary for --today--", required: true  #interpolated at runtime
 
-      route %r{^start standup now}i, :begin_standup, command: true
+      route %r{^start standup now}i, :begin_standup, command: true, restrict_to: :standup_admins
       route %r{standup response (1.*)(2.*)(3.*)}i, :process_standup, command: true
 
       def begin_standup(request)
@@ -28,6 +28,7 @@ module Lita
       end
 
       def process_standup(request)
+
         return unless timing_is_right?
         request.reply('Response recorded. Thanks for partipating')
         date_string = Time.now.strftime('%Y%m%d')
@@ -48,12 +49,13 @@ module Lita
       end
 
       def find_and_create_users
-        @users = Lita::Authorization.groups_with_users[:standup_participants]
+        @users = robot.auth.groups_with_users[:standup_participants]
+        Lita.logger.debug(@users.inspect)
       end
 
       def timing_is_right?
+        return false if redis.get('last_standup_started_at').nil?
         intitiated_at = Time.parse(redis.get('last_standup_started_at'))
-        return false if intitiated_at.nil?
         Time.now > intitiated_at && intitiated_at + (60*config.time_to_respond) > Time.now
       end
 

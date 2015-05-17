@@ -1,13 +1,12 @@
+require 'mail'
+require 'sucker_punch'
 
 class SummaryEmailJob
-  require 'mail'
-  require 'sucker_punch'
   include SuckerPunch::Job
 
   def later(sec, payload)
     sec == 0 ? preform(payload) : after(sec) { preform(payload) } #0 seconds not handled well by #after
   end
-
 
   def preform(payload)
     redis = payload[:redis]
@@ -27,18 +26,22 @@ class SummaryEmailJob
       delivery_method(dev_meth , options)
     end
 
-    subject_line = config.email_subject_line
-    subject_line.gsub!(/--today--/, Time.now.strftime('%m/%d'))
+    if config.email_subject_line == "Standup summary for --today--"
+      subject_line = config.email_subject_line.gsub(/--today--/, Time.now.strftime('%m/%d'))
+    else
+      subject_line = config.email_subject_line
+    end
 
     mail = Mail.new do
       from    config.robot_email_address
       to      ['cwoodrich@gmail.com']
-      subject config.email_subject_line
+      subject subject_line
       body    "#{email_body}"
     end
 
     if mail.deliver!
       Lita.logger.info("Sent standup email to #{mail.to} at #{Time.now}")
+      redis.keys.each{ |key| redis.del(key) }
     end
   end
 
