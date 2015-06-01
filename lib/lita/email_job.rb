@@ -34,7 +34,7 @@ class SummaryEmailJob
 
     mail = Mail.new do
       from    config.robot_email_address
-      to      ['cwoodrich@gmail.com']
+      to      config.summary_email_recipients
       subject subject_line
       body    "#{email_body}"
     end
