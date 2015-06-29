@@ -40,8 +40,9 @@ module Lita
 
       def message_all_users
         @users.each do |user|
-          robot.send_message(user, "Time for standup!")
-          robot.send_message(user, "Please tell me what you did yesterday,
+          source = Lita::Source.new(user: user)
+          robot.send_message(source, "Time for standup!")
+          robot.send_message(source, "Please tell me what you did yesterday,
                                     what you're doing now, and what you're
                                     working on today. Please prepend your
                                     answer with 'standup response'")
