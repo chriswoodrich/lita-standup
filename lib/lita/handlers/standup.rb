@@ -28,7 +28,6 @@ module Lita
       end
 
       def process_standup(request)
-
         return unless timing_is_right?
         request.reply('Response recorded. Thanks for partipating')
         date_string = Time.now.strftime('%Y%m%d')
@@ -50,8 +49,7 @@ module Lita
       end
 
       def find_and_create_users
-        @users = robot.auth.groups_with_users[:standup_participants]
-        Lita.logger.debug(@users.inspect)
+        @users ||= robot.auth.groups_with_users[config.name_of_auth_group]
       end
 
       def timing_is_right?
