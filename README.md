@@ -4,7 +4,7 @@
 [![Coverage Status](https://coveralls.io/repos/chriswoodrich/lita-standup/badge.png)](https://coveralls.io/r/chriswoodrich/lita-standup)
 [![Gem Version](https://badge.fury.io/rb/lita-standup.svg)](http://badge.fury.io/rb/lita-standup)
 
-Lita-standup is a handler for Lita, meant to automate the process of the daily standup, and help teams collaborate.
+Lita-standup is a handler for [Lita](https://github.com/jimmycuadra/lita), meant to automate the process of the daily standup, and help teams collaborate.
 
 ## Installation
 
