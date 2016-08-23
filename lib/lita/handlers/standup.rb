@@ -24,7 +24,7 @@ module Lita
         redis.set('last_standup_started_at', Time.now)
         find_and_create_users
         message_all_users
-        SummaryEmailJob.new().async.later(config.time_to_respond * 60, {redis: redis, config: config})
+        SummaryEmailJob.perform_in(config.time_to_respond * 60, {redis: redis, config: config})
       end
 
       def process_standup(request)
@@ -42,10 +42,10 @@ module Lita
           source = Lita::Source.new(user: user)
           robot.send_message(source, "Time for standup!")
           robot.send_message(source, "Please tell me (in the following format)
-                                      Lita standup response
-                                      1: things you worked on yesterday,
-                                      2: things you'll be doing today,
-                                      3: anything that's blocking you.")
+Lita standup response
+1: things you worked on yesterday,
+2: things you'll be doing today,
+3: anything that's blocking you.")
         end
       end
 
