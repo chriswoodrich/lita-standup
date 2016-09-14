@@ -43,9 +43,9 @@ module Lita
           robot.send_message(source, "Time for standup!")
           robot.send_message(source, "Please tell me (in the following format)
 Lita standup response
-1: things you worked on yesterday,
-2: things you'll be doing today,
-3: anything that's blocking you.")
+1. things you worked on yesterday,
+2. things you'll be doing today,
+3. anything that's blocking you.")
         end
       end
 
