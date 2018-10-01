@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "lita-standup"
-  spec.version       = "0.0.4"
+  spec.version       = "0.1.0"
   spec.authors       = ["Chris Woodrich"]
   spec.email         = ["cwoodrich@gmail.com"]
   spec.description   = "Daily standup automation for easier collaboration"
