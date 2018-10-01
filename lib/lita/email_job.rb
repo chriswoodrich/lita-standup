@@ -4,11 +4,7 @@ require 'sucker_punch'
 class SummaryEmailJob
   include SuckerPunch::Job
 
-  def later(sec, payload)
-    sec == 0 ? preform(payload) : after(sec) { preform(payload) } #0 seconds not handled well by #after
-  end
-
-  def preform(payload)
+  def perform(payload)
     redis = payload[:redis]
     config = payload[:config]
 
